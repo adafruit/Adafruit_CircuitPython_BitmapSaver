@@ -52,6 +52,7 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_BitmapSaver.git"
 #pylint:disable=line-too-long,broad-except,redefined-outer-name
 
 def _write_bmp_header(output_file, filesize):
+    # print('writing bmp header')
     output_file.write(bytes('BM', 'ascii'))
     output_file.write(struct.pack('<I', filesize))
     output_file.write(b'\00\x00')
@@ -59,6 +60,7 @@ def _write_bmp_header(output_file, filesize):
     output_file.write(struct.pack('<I', 54))
 
 def _write_dib_header(output_file, bitmap):
+    # print('writing dib header')
     output_file.write(struct.pack('<I', 40))
     output_file.write(struct.pack('<I', bitmap.width))
     output_file.write(struct.pack('<I', bitmap.height))
@@ -66,27 +68,23 @@ def _write_dib_header(output_file, bitmap):
     output_file.write(struct.pack('<H', 24))
     output_file.write(b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
 
-def _swap_bytes(value):
-    return ((value & 0xFF00) >> 8) | ((value & 0x00FF) << 8)
-
 def _bytes_per_row(bitmap):
     pixel_bytes = 3 * bitmap.width
     padding_bytes = (4 - (pixel_bytes % 4)) % 4
     return pixel_bytes + padding_bytes
 
 def _write_pixels(output_file, bitmap, palette):
+    # print('writing pixels')
     row_buffer = bytearray(_bytes_per_row(bitmap))
 
     for y in range(bitmap.height, 0, -1):
         buffer_index = 0
         for x in range(bitmap.width):
-            pixel = bitmap[x, y-1]             # this is an index into the palette
-            color = _swap_bytes(palette[pixel])  # This is a 16 bit value in r5g6b5 format
-            blue = (color << 3) & 0x00F8    # extract each of the RGB tripple into it's own byte
-            green = (color >> 3) & 0x00FC
-            red = (color >> 8) & 0x00F8
-            for value in (blue, green, red):
-                row_buffer[buffer_index] = value
+            pixel = bitmap[x, y-1]
+            color = palette[pixel]
+            for _ in range(3):
+                row_buffer[buffer_index] = color & 0xFF
+                color >>= 8
                 buffer_index += 1
         output_file.write(row_buffer)
 
@@ -96,6 +94,7 @@ def save_bitmap(bitmap, palette, file_or_filename):
     :param bitmap: the displayio.Bitmap to save
     :param palette: the displayio.Palette to use for looking up colors in the bitmap
     """
+    print("Saving bitmap")
     if not isinstance(bitmap, Bitmap):
         raise ValueError('bitmap')
     if not isinstance(palette, Palette):
@@ -107,6 +106,9 @@ def save_bitmap(bitmap, palette, file_or_filename):
             output_file = file_or_filename
 
         filesize = 54 + bitmap.height * _bytes_per_row(bitmap)
+        # print('Bitmap height: ', bitmap.height)
+        # print('Bitmap width: ', bitmap.width)
+        # print('Filesize: ', filesize)
         _write_bmp_header(output_file, filesize)
         _write_dib_header(output_file, bitmap)
         _write_pixels(output_file, bitmap, palette)
@@ -115,3 +117,4 @@ def save_bitmap(bitmap, palette, file_or_filename):
         raise
     else:
         output_file.close()
+    print("Finished saving bitmap")
