@@ -52,7 +52,6 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_BitmapSaver.git"
 #pylint:disable=line-too-long,broad-except,redefined-outer-name
 
 def _write_bmp_header(output_file, filesize):
-    # print('writing bmp header')
     output_file.write(bytes('BM', 'ascii'))
     output_file.write(struct.pack('<I', filesize))
     output_file.write(b'\00\x00')
@@ -60,7 +59,6 @@ def _write_bmp_header(output_file, filesize):
     output_file.write(struct.pack('<I', 54))
 
 def _write_dib_header(output_file, bitmap):
-    # print('writing dib header')
     output_file.write(struct.pack('<I', 40))
     output_file.write(struct.pack('<I', bitmap.width))
     output_file.write(struct.pack('<I', bitmap.height))
@@ -74,7 +72,6 @@ def _bytes_per_row(bitmap):
     return pixel_bytes + padding_bytes
 
 def _write_pixels(output_file, bitmap, palette):
-    # print('writing pixels')
     row_buffer = bytearray(_bytes_per_row(bitmap))
 
     for y in range(bitmap.height, 0, -1):
@@ -94,7 +91,6 @@ def save_bitmap(bitmap, palette, file_or_filename):
     :param bitmap: the displayio.Bitmap to save
     :param palette: the displayio.Palette to use for looking up colors in the bitmap
     """
-    print("Saving bitmap")
     if not isinstance(bitmap, Bitmap):
         raise ValueError('bitmap')
     if not isinstance(palette, Palette):
@@ -106,15 +102,10 @@ def save_bitmap(bitmap, palette, file_or_filename):
             output_file = file_or_filename
 
         filesize = 54 + bitmap.height * _bytes_per_row(bitmap)
-        # print('Bitmap height: ', bitmap.height)
-        # print('Bitmap width: ', bitmap.width)
-        # print('Filesize: ', filesize)
         _write_bmp_header(output_file, filesize)
         _write_dib_header(output_file, bitmap)
         _write_pixels(output_file, bitmap, palette)
     except Exception:
-        print('Error saving bitmap')
         raise
     else:
         output_file.close()
-    print("Finished saving bitmap")
