@@ -92,9 +92,9 @@ def save_bitmap(bitmap, palette, file_or_filename):
     :param palette: the displayio.Palette to use for looking up colors in the bitmap
     """
     if not isinstance(bitmap, Bitmap):
-        raise ValueError('bitmap')
+        raise ValueError('First argument must be a Bitmap')
     if not isinstance(palette, Palette):
-        raise ValueError('palette')
+        raise ValueError('Second argument must be a Palette')
     try:
         if isinstance(file_or_filename, str):
             output_file = open(file_or_filename, 'wb')
