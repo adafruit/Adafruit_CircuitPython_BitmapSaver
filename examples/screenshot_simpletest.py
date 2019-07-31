@@ -22,6 +22,7 @@
 
 """Example of taking a screenshot."""
 
+#pylint:disable=invalid-name
 import board
 import digitalio
 import busio

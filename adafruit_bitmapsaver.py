@@ -52,7 +52,7 @@ from displayio import Bitmap, Palette, Display
 __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_BitmapSaver.git"
 
-#pylint:disable=line-too-long,broad-except,redefined-outer-name
+#pylint:disable=line-too-long,broad-except,redefined-outer-name,invalid-name
 
 def _write_bmp_header(output_file, filesize):
     output_file.write(bytes('BM', 'ascii'))
@@ -88,6 +88,7 @@ def _rgb565_to_bgr_tuple(color):
     red = (color >> 8) & 0x00F8
     return (blue, green, red)
 
+#pylint:disable=too-many-locals
 def _write_pixels(output_file, pixel_source, palette):
     saving_bitmap = isinstance(pixel_source, Bitmap)
     w, h = _rotated_height_and_width(pixel_source)
@@ -111,6 +112,7 @@ def _write_pixels(output_file, pixel_source, palette):
                     buffer_index += 1
         output_file.write(row_buffer)
         gc.collect()
+#pylint:enable=too-many-locals
 
 def save_pixels(file_or_filename, pixel_source=board.DISPLAY, palette=None):
     """Save pixels to a 24 bit per pixel BMP file.
