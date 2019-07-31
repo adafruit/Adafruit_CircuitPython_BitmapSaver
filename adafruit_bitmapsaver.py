@@ -61,32 +61,41 @@ def _write_bmp_header(output_file, filesize):
     output_file.write(b'\00\x00')
     output_file.write(struct.pack('<I', 54))
 
-def _write_dib_header(output_file, pixel_source):
+def _write_dib_header(output_file, w, h):
     output_file.write(struct.pack('<I', 40))
-    output_file.write(struct.pack('<I', pixel_source.width))
-    output_file.write(struct.pack('<I', pixel_source.height))
+    output_file.write(struct.pack('<I', w))
+    output_file.write(struct.pack('<I', h))
     output_file.write(struct.pack('<H', 1))
     output_file.write(struct.pack('<H', 24))
     output_file.write(b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
 
-def _bytes_per_row(pixel_source):
-    pixel_bytes = 3 * pixel_source.width
+def _bytes_per_row(source_width):
+    pixel_bytes = 3 * source_width
     padding_bytes = (4 - (pixel_bytes % 4)) % 4
     return pixel_bytes + padding_bytes
 
-def rgb565_to_bgr_tuple(color):
+def _rotated_height_and_width(pixel_source):
+    w = pixel_source.width
+    h = pixel_source.height
+    # flip axis if the display is rotated
+    if isinstance(pixel_source, Display) and (pixel_source.rotation % 180 != 0):
+        return (h, w)
+    return (w, h)
+
+def _rgb565_to_bgr_tuple(color):
     blue = (color << 3) & 0x00F8    # extract each of the RGB tripple into it's own byte
     green = (color >> 3) & 0x00FC
     red = (color >> 8) & 0x00F8
     return (blue, green, red)
 
 def _write_pixels(output_file, pixel_source, palette):
-    row_buffer = bytearray(_bytes_per_row(pixel_source))
     saving_bitmap = isinstance(pixel_source, Bitmap)
-    for y in range(pixel_source.height, 0, -1):
+    w, h = _rotated_height_and_width(pixel_source)
+    row_buffer = bytearray(_bytes_per_row(w))
+    for y in range(h, 0, -1):
         buffer_index = 0
         if saving_bitmap:
-            for x in range(pixel_source.width):
+            for x in range(w):
                 pixel = pixel_source[x, y-1]
                 color = palette[pixel]
                 for _ in range(3):
@@ -94,10 +103,10 @@ def _write_pixels(output_file, pixel_source, palette):
                     color >>= 8
                     buffer_index += 1
         else:
-            data = pixel_source.fill_area(x=0, y=y-1, width=pixel_source.width, height=1)
-            for i in range(pixel_source.width):
+            data = pixel_source.fill_area(x=0, y=y-1, width=w, height=1)
+            for i in range(w):
                 pixel565 = (data[i * 2] << 8) + data[i * 2 + 1]
-                for b in rgb565_to_bgr_tuple(pixel565):
+                for b in _rgb565_to_bgr_tuple(pixel565):
                     row_buffer[buffer_index] = b & 0xFF
                     buffer_index += 1
         output_file.write(row_buffer)
@@ -123,9 +132,10 @@ def save_pixels(file_or_filename, pixel_source=board.DISPLAY, palette=None):
         else:
             output_file = file_or_filename
 
-        filesize = 54 + pixel_source.height * _bytes_per_row(pixel_source)
+        w, h = _rotated_height_and_width(pixel_source)
+        filesize = 54 + h * _bytes_per_row(w)
         _write_bmp_header(output_file, filesize)
-        _write_dib_header(output_file, pixel_source)
+        _write_dib_header(output_file, w, h)
         _write_pixels(output_file, pixel_source, palette)
     except Exception:
         raise
