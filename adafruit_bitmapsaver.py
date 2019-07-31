@@ -23,7 +23,8 @@
 `adafruit_bitmapsaver`
 ================================================================================
 
-Save a displayio.Bitmap (and associated displayio.Palette) into a BMP file.
+Save a displayio.Bitmap (and associated displayio.Palette) in a BMP file.
+Make a screenshot (the contents of a displayio.Display) and save in a BMP file.
 
 
 * Author(s): Dave Astels
@@ -43,8 +44,10 @@ Implementation Notes
 
 # imports
 
+import gc
 import struct
-from displayio import Bitmap, Palette
+import board
+from displayio import Bitmap, Palette, Display
 
 __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_BitmapSaver.git"
@@ -58,53 +61,72 @@ def _write_bmp_header(output_file, filesize):
     output_file.write(b'\00\x00')
     output_file.write(struct.pack('<I', 54))
 
-def _write_dib_header(output_file, bitmap):
+def _write_dib_header(output_file, pixel_source):
     output_file.write(struct.pack('<I', 40))
-    output_file.write(struct.pack('<I', bitmap.width))
-    output_file.write(struct.pack('<I', bitmap.height))
+    output_file.write(struct.pack('<I', pixel_source.width))
+    output_file.write(struct.pack('<I', pixel_source.height))
     output_file.write(struct.pack('<H', 1))
     output_file.write(struct.pack('<H', 24))
     output_file.write(b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
 
-def _bytes_per_row(bitmap):
-    pixel_bytes = 3 * bitmap.width
+def _bytes_per_row(pixel_source):
+    pixel_bytes = 3 * pixel_source.width
     padding_bytes = (4 - (pixel_bytes % 4)) % 4
     return pixel_bytes + padding_bytes
 
-def _write_pixels(output_file, bitmap, palette):
-    row_buffer = bytearray(_bytes_per_row(bitmap))
+def rgb565_to_bgr_tuple(color):
+    blue = (color << 3) & 0x00F8    # extract each of the RGB tripple into it's own byte
+    green = (color >> 3) & 0x00FC
+    red = (color >> 8) & 0x00F8
+    return (blue, green, red)
 
-    for y in range(bitmap.height, 0, -1):
+def _write_pixels(output_file, pixel_source, palette):
+    row_buffer = bytearray(_bytes_per_row(pixel_source))
+    saving_bitmap = isinstance(pixel_source, Bitmap)
+    for y in range(pixel_source.height, 0, -1):
         buffer_index = 0
-        for x in range(bitmap.width):
-            pixel = bitmap[x, y-1]
-            color = palette[pixel]
-            for _ in range(3):
-                row_buffer[buffer_index] = color & 0xFF
-                color >>= 8
-                buffer_index += 1
+        if saving_bitmap:
+            for x in range(pixel_source.width):
+                pixel = pixel_source[x, y-1]
+                color = palette[pixel]
+                for _ in range(3):
+                    row_buffer[buffer_index] = color & 0xFF
+                    color >>= 8
+                    buffer_index += 1
+        else:
+            data = pixel_source.fill_area(x=0, y=y-1, width=pixel_source.width, height=1)
+            for i in range(pixel_source.width):
+                pixel565 = (data[i * 2] << 8) + data[i * 2 + 1]
+                for b in rgb565_to_bgr_tuple(pixel565):
+                    row_buffer[buffer_index] = b & 0xFF
+                    buffer_index += 1
         output_file.write(row_buffer)
+        gc.collect()
 
-def save_bitmap(bitmap, palette, file_or_filename):
-    """Save a bitmap (using an associated palette) to a 24 bit per pixel BMP file.
+def save_pixels(file_or_filename, pixel_source=board.DISPLAY, palette=None):
+    """Save pixels to a 24 bit per pixel BMP file.
+    If pixel_source if a displayio.Bitmap, save it's pixels through palette.
+    If it's a displayio.Display, a palette isn't required.
 
-    :param bitmap: the displayio.Bitmap to save
-    :param palette: the displayio.Palette to use for looking up colors in the bitmap
+    :param file_or_filename: either the file to save to, or it's absolute name
+    :param pixel_source: the Bitmap or Display to save
+    :param palette: the Palette to use for looking up colors in the bitmap
     """
-    if not isinstance(bitmap, Bitmap):
-        raise ValueError('First argument must be a Bitmap')
-    if not isinstance(palette, Palette):
-        raise ValueError('Second argument must be a Palette')
+    if isinstance(pixel_source, Bitmap):
+        if not isinstance(palette, Palette):
+            raise ValueError('Third argument must be a Palette for a Bitmap save')
+    elif not isinstance(pixel_source, Display):
+        raise ValueError('Second argument must be a Bitmap or Display')
     try:
         if isinstance(file_or_filename, str):
             output_file = open(file_or_filename, 'wb')
         else:
             output_file = file_or_filename
 
-        filesize = 54 + bitmap.height * _bytes_per_row(bitmap)
+        filesize = 54 + pixel_source.height * _bytes_per_row(pixel_source)
         _write_bmp_header(output_file, filesize)
-        _write_dib_header(output_file, bitmap)
-        _write_pixels(output_file, bitmap, palette)
+        _write_dib_header(output_file, pixel_source)
+        _write_pixels(output_file, pixel_source, palette)
     except Exception:
         raise
     else:
