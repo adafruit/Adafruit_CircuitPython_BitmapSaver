@@ -52,7 +52,6 @@ from displayio import Bitmap, Palette, Display
 __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_BitmapSaver.git"
 
-#pylint:disable=line-too-long,broad-except,redefined-outer-name,invalid-name
 
 def _write_bmp_header(output_file, filesize):
     output_file.write(bytes('BM', 'ascii'))
@@ -61,13 +60,14 @@ def _write_bmp_header(output_file, filesize):
     output_file.write(b'\00\x00')
     output_file.write(struct.pack('<I', 54))
 
-def _write_dib_header(output_file, w, h):
+def _write_dib_header(output_file, width, height):
     output_file.write(struct.pack('<I', 40))
-    output_file.write(struct.pack('<I', w))
-    output_file.write(struct.pack('<I', h))
+    output_file.write(struct.pack('<I', width))
+    output_file.write(struct.pack('<I', height))
     output_file.write(struct.pack('<H', 1))
     output_file.write(struct.pack('<H', 24))
-    output_file.write(b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
+    for _ in range(24):
+        output_file.write(b'\x00')
 
 def _bytes_per_row(source_width):
     pixel_bytes = 3 * source_width
@@ -75,12 +75,10 @@ def _bytes_per_row(source_width):
     return pixel_bytes + padding_bytes
 
 def _rotated_height_and_width(pixel_source):
-    w = pixel_source.width
-    h = pixel_source.height
     # flip axis if the display is rotated
     if isinstance(pixel_source, Display) and (pixel_source.rotation % 180 != 0):
-        return (h, w)
-    return (w, h)
+        return (pixel_source.height, pixel_source.width)
+    return (pixel_source.width, pixel_source.height)
 
 def _rgb565_to_bgr_tuple(color):
     blue = (color << 3) & 0x00F8    # extract each of the RGB tripple into it's own byte
@@ -91,12 +89,12 @@ def _rgb565_to_bgr_tuple(color):
 #pylint:disable=too-many-locals
 def _write_pixels(output_file, pixel_source, palette):
     saving_bitmap = isinstance(pixel_source, Bitmap)
-    w, h = _rotated_height_and_width(pixel_source)
-    row_buffer = bytearray(_bytes_per_row(w))
-    for y in range(h, 0, -1):
+    width, height = _rotated_height_and_width(pixel_source)
+    row_buffer = bytearray(_bytes_per_row(width))
+    for y in range(height, 0, -1):
         buffer_index = 0
         if saving_bitmap:
-            for x in range(w):
+            for x in range(width):
                 pixel = pixel_source[x, y-1]
                 color = palette[pixel]
                 for _ in range(3):
@@ -104,8 +102,8 @@ def _write_pixels(output_file, pixel_source, palette):
                     color >>= 8
                     buffer_index += 1
         else:
-            data = pixel_source.fill_area(x=0, y=y-1, width=w, height=1)
-            for i in range(w):
+            data = pixel_source.fill_area(x=0, y=y-1, width=width, height=1)
+            for i in range(width):
                 pixel565 = (data[i * 2] << 8) + data[i * 2 + 1]
                 for b in _rgb565_to_bgr_tuple(pixel565):
                     row_buffer[buffer_index] = b & 0xFF
@@ -134,10 +132,10 @@ def save_pixels(file_or_filename, pixel_source=board.DISPLAY, palette=None):
         else:
             output_file = file_or_filename
 
-        w, h = _rotated_height_and_width(pixel_source)
-        filesize = 54 + h * _bytes_per_row(w)
+        width, height = _rotated_height_and_width(pixel_source)
+        filesize = 54 + height * _bytes_per_row(width)
         _write_bmp_header(output_file, filesize)
-        _write_dib_header(output_file, w, h)
+        _write_dib_header(output_file, width, height)
         _write_pixels(output_file, pixel_source, palette)
     except Exception:
         raise
