@@ -138,7 +138,7 @@ def save_pixels(file_or_filename, pixel_source=board.DISPLAY, palette=None):
         _write_bmp_header(output_file, filesize)
         _write_dib_header(output_file, width, height)
         _write_pixels(output_file, pixel_source, palette)
-    except Exception as e:
-        raise e
+    except Exception as ex:
+        raise ex
     else:
         output_file.close()
