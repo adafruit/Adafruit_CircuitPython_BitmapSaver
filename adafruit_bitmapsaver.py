@@ -103,7 +103,7 @@ def _write_pixels(output_file, pixel_source, palette):
                     color >>= 8
                     buffer_index += 1
         else:
-            data = pixel_source.fill_row(y=y-1, buffer=result_buffer)
+            data = pixel_source.fill_row(y-1, result_buffer)
             for i in range(width):
                 pixel565 = (data[i * 2] << 8) + data[i * 2 + 1]
                 for b in _rgb565_to_bgr_tuple(pixel565):
