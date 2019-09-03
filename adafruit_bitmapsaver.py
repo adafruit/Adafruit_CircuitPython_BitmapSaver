@@ -91,6 +91,7 @@ def _write_pixels(output_file, pixel_source, palette):
     saving_bitmap = isinstance(pixel_source, Bitmap)
     width, height = _rotated_height_and_width(pixel_source)
     row_buffer = bytearray(_bytes_per_row(width))
+    result_buffer = bytearray(2048)
     for y in range(height, 0, -1):
         buffer_index = 0
         if saving_bitmap:
@@ -102,7 +103,7 @@ def _write_pixels(output_file, pixel_source, palette):
                     color >>= 8
                     buffer_index += 1
         else:
-            data = pixel_source.fill_area(x=0, y=y-1, width=width, height=1)
+            data = pixel_source.fill_row(y-1, result_buffer)
             for i in range(width):
                 pixel565 = (data[i * 2] << 8) + data[i * 2 + 1]
                 for b in _rgb565_to_bgr_tuple(pixel565):
@@ -137,7 +138,7 @@ def save_pixels(file_or_filename, pixel_source=board.DISPLAY, palette=None):
         _write_bmp_header(output_file, filesize)
         _write_dib_header(output_file, width, height)
         _write_pixels(output_file, pixel_source, palette)
-    except Exception:
-        raise
+    except Exception as ex:
+        raise ex
     else:
         output_file.close()
