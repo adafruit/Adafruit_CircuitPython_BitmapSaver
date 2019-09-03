@@ -105,7 +105,7 @@ Usage Example
                 bitmap[x, y] = 0
 
     print('Saving bitmap')
-    save_bitmap(bitmap, palette, '/sd/test.bmp')
+    save_pixels('/sd/test.bmp', bitmap, palette)
 
 Contributing
 ============
