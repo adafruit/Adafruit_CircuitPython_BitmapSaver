@@ -9,8 +9,8 @@ Introduction
     :target: https://discord.gg/nBQh6qu
     :alt: Discord
 
-.. image:: https://travis-ci.com/adafruit/Adafruit_CircuitPython_BitmapSaver.svg?branch=master
-    :target: https://travis-ci.com/adafruit/Adafruit_CircuitPython_BitmapSaver
+.. image:: https://github.com/adafruit/Adafruit_CircuitPython_BitmapSaver/workflows/Build%20CI/badge.svg
+    :target: https://github.com/adafruit/Adafruit_CircuitPython_BitmapSaver/actions/
     :alt: Build Status
 
 Save a displayio.Bitmap (and associated displayio.Palette) into a BMP file.
