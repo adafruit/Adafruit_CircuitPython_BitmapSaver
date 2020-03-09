@@ -22,7 +22,7 @@
 
 """Example of taking a screenshot."""
 
-#pylint:disable=invalid-name
+# pylint:disable=invalid-name
 import board
 import digitalio
 import busio
@@ -37,6 +37,6 @@ sdcard = adafruit_sdcard.SDCard(spi, cs)
 vfs = storage.VfsFat(sdcard)
 storage.mount(vfs, "/sd")
 
-print('Taking Screenshot...')
-save_pixels('/sd/screenshot.bmp')
-print('Screenshot taken')
+print("Taking Screenshot...")
+save_pixels("/sd/screenshot.bmp")
+print("Screenshot taken")

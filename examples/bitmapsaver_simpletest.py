@@ -30,9 +30,9 @@ import adafruit_sdcard
 import storage
 from adafruit_bitmapsaver import save_pixels
 
-#pylint:disable=invalid-name
+# pylint:disable=invalid-name
 
-print('Setting up SD card')
+print("Setting up SD card")
 spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
 cs = digitalio.DigitalInOut(board.SD_CS)
 sdcard = adafruit_sdcard.SDCard(spi, cs)
@@ -51,7 +51,7 @@ PINK = 0xFFC0CB
 
 colors = (BLACK, RED, ORANGE, YELLOW, GREEN, BLUE, PURPLE, WHITE)
 
-print('Building sample bitmap and palette')
+print("Building sample bitmap and palette")
 bitmap = Bitmap(16, 16, 9)
 palette = Palette(len(colors))
 for i, c in enumerate(colors):
@@ -68,5 +68,5 @@ for x in range(16):
         else:
             bitmap[x, y] = 0
 
-print('Saving bitmap')
-save_pixels('/sd/test.bmp', bitmap, palette)
+print("Saving bitmap")
+save_pixels("/sd/test.bmp", bitmap, palette)
