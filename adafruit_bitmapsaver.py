@@ -121,7 +121,7 @@ def _write_pixels(output_file, pixel_source, palette):
 # pylint:enable=too-many-locals
 
 
-def save_pixels(file_or_filename, pixel_source=board.DISPLAY, palette=None):
+def save_pixels(file_or_filename, pixel_source=None, palette=None):
     """Save pixels to a 24 bit per pixel BMP file.
     If pixel_source if a displayio.Bitmap, save it's pixels through palette.
     If it's a displayio.Display, a palette isn't required.
@@ -130,6 +130,11 @@ def save_pixels(file_or_filename, pixel_source=board.DISPLAY, palette=None):
     :param pixel_source: the Bitmap or Display to save
     :param palette: the Palette to use for looking up colors in the bitmap
     """
+    if not pixel_source:
+        if "DISPLAY" in dir(board):
+            pixel_source = board.DISPLAY
+        else:
+            raise ValueError("Second argument must be a Bitmap or Display")
     if isinstance(pixel_source, Bitmap):
         if not isinstance(palette, Palette):
             raise ValueError("Third argument must be a Palette for a Bitmap save")
