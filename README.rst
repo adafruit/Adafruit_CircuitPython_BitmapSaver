@@ -67,6 +67,7 @@ Usage Example
     import adafruit_sdcard
     import storage
     from adafruit_bitmapsaver import save_pixels
+
     print('Setting up SD card')
     spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
     cs = digitalio.DigitalInOut(board.SD_CS)
