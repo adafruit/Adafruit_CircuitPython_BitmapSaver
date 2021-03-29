@@ -98,6 +98,8 @@ def _write_pixels(output_file, pixel_source, palette):
                     row_buffer[buffer_index] = b & 0xFF
                     buffer_index += 1
         output_file.write(row_buffer)
+        for i in range(width * 2):
+            result_buffer[i] = 0
         gc.collect()
 
 
