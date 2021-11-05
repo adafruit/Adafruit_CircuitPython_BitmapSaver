@@ -127,7 +127,9 @@ def save_pixels(file_or_filename, pixel_source=None, palette=None):
         raise ValueError("Second argument must be a Bitmap or Display")
     try:
         if isinstance(file_or_filename, str):
-            output_file = open(file_or_filename, "wb")
+            output_file = open(  # pylint: disable=consider-using-with
+                file_or_filename, "wb"
+            )
         else:
             output_file = file_or_filename
 
