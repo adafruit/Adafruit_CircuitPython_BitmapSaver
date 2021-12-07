@@ -79,7 +79,6 @@ def _write_pixels(output_file, pixel_source, palette):
     saving_bitmap = isinstance(pixel_source, Bitmap)
     width, height = _rotated_height_and_width(pixel_source)
     row_buffer = bytearray(_bytes_per_row(width))
-    result_buffer = bytearray(2048)
     for y in range(height, 0, -1):
         buffer_index = 0
         if saving_bitmap:
