@@ -1,4 +1,5 @@
 # SPDX-FileCopyrightText: 2019 Dave Astels for Adafruit Industries
+# SPDX-FileCopyrightText: 2022 Matt Land
 #
 # SPDX-License-Identifier: MIT
 
@@ -10,7 +11,7 @@ Save a displayio.Bitmap (and associated displayio.Palette) in a BMP file.
 Make a screenshot (the contents of a displayio.Display) and save in a BMP file.
 
 
-* Author(s): Dave Astels
+* Author(s): Dave Astels, Matt Land
 
 Implementation Notes
 --------------------
@@ -38,18 +39,18 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_BitmapSaver.git"
 
 def _write_bmp_header(output_file, filesize):
     output_file.write(bytes("BM", "ascii"))
-    output_file.write(struct.pack("<I", filesize))
+    output_file.write(struct.pack("<I", filesize))  # pylint: disable=no-member
     output_file.write(b"\00\x00")
     output_file.write(b"\00\x00")
-    output_file.write(struct.pack("<I", 54))
+    output_file.write(struct.pack("<I", 54))  # pylint: disable=no-member
 
 
 def _write_dib_header(output_file, width, height):
-    output_file.write(struct.pack("<I", 40))
-    output_file.write(struct.pack("<I", width))
-    output_file.write(struct.pack("<I", height))
-    output_file.write(struct.pack("<H", 1))
-    output_file.write(struct.pack("<H", 24))
+    output_file.write(struct.pack("<I", 40))  # pylint: disable=no-member
+    output_file.write(struct.pack("<I", width))  # pylint: disable=no-member
+    output_file.write(struct.pack("<I", height))  # pylint: disable=no-member
+    output_file.write(struct.pack("<H", 1))  # pylint: disable=no-member
+    output_file.write(struct.pack("<H", 24))  # pylint: disable=no-member
     for _ in range(24):
         output_file.write(b"\x00")
 
@@ -79,6 +80,7 @@ def _write_pixels(output_file, pixel_source, palette):
     saving_bitmap = isinstance(pixel_source, Bitmap)
     width, height = _rotated_height_and_width(pixel_source)
     row_buffer = bytearray(_bytes_per_row(width))
+    result_buffer = False
     for y in range(height, 0, -1):
         buffer_index = 0
         if saving_bitmap:
@@ -98,8 +100,9 @@ def _write_pixels(output_file, pixel_source, palette):
                     row_buffer[buffer_index] = b & 0xFF
                     buffer_index += 1
         output_file.write(row_buffer)
-        for i in range(width * 2):
-            result_buffer[i] = 0
+        if result_buffer:
+            for i in range(width * 2):
+                result_buffer[i] = 0
         gc.collect()
 
 
