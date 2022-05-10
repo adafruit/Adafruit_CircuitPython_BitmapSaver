@@ -95,8 +95,8 @@ def _write_pixels(
         if saving_bitmap:
             # pixel_source: Bitmap
             for x in range(width):
-                pixel = pixel_source[x, y - 1]  # type: ignore
-                color = palette[pixel]  # type: ignore  # handled by save_pixel's guardians
+                pixel = pixel_source[x, y - 1]
+                color = palette[pixel]  # handled by save_pixel's guardians
                 for _ in range(3):
                     row_buffer[buffer_index] = color & 0xFF
                     color >>= 8
@@ -104,7 +104,7 @@ def _write_pixels(
         else:
             # pixel_source: Display
             result_buffer = bytearray(2048)
-            data = pixel_source.fill_row(y - 1, result_buffer)  # type: ignore
+            data = pixel_source.fill_row(y - 1, result_buffer)
             for i in range(width):
                 pixel565 = (data[i * 2] << 8) + data[i * 2 + 1]
                 for b in _rgb565_to_bgr_tuple(pixel565):
@@ -133,7 +133,7 @@ def save_pixels(
     :param palette: the Palette to use for looking up colors in the bitmap
     """
     if not pixel_source:
-        if "DISPLAY" not in dir(board):
+        if not hasattr(board, "DISPLAY"):
             raise ValueError("Second argument must be a Bitmap or Display")
         pixel_source = board.DISPLAY
 
