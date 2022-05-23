@@ -122,7 +122,7 @@ def _write_pixels(
 def save_pixels(
     file_or_filename: Union[str, BufferedWriter],
     pixel_source: Union[Display, Bitmap] = None,
-    palette: Palette = None,
+    palette: Optional[Palette] = None,
 ) -> None:
     """Save pixels to a 24 bit per pixel BMP file.
     If pixel_source if a displayio.Bitmap, save it's pixels through palette.
