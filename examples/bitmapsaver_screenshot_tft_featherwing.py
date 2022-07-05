@@ -1,9 +1,6 @@
 # SPDX-FileCopyrightText: 2022 DJDevon3 for Adafruit Industries
 # SPDX-License-Identifier: MIT
-
-
 """Screenshot on a 3.5" TFT Featherwing (integrated SD Card)"""
-
 # pylint:disable=invalid-name
 import board
 import digitalio
