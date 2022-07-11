@@ -10,12 +10,13 @@ import storage
 from adafruit_hx8357 import HX8357
 from adafruit_bitmapsaver import save_pixels
 
-# Will also work on 2.5" TFT Featherwing just change the size.
+displayio.release_displays()
+
+# 3.5" TFT Featherwing is 480x320 pixels
 DISPLAY_WIDTH = 480
 DISPLAY_HEIGHT = 320
 
 # Initialize Protocol Busses and SD Card
-i2c = board.I2C()
 spi = board.SPI()
 cs = digitalio.DigitalInOut(board.D5)
 sdcard = adafruit_sdcard.SDCard(spi, cs)
