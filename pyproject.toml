@@ -12,7 +12,7 @@ requires = [
 [project]
 name = "adafruit-circuitpython-bitmapsaver"
 description = "Save a displayio.Bitmap (and associated displayio.Palette) into a BMP file."
-version = "0.0.0-auto.0"
+version = "0.0.0+auto.0"
 readme = "README.rst"
 authors = [
     {name = "Adafruit Industries", email = "circuitpython@adafruit.com"}
