@@ -159,5 +159,4 @@ def save_pixels(
         _write_pixels(output_file, pixel_source, palette)
     except Exception as ex:
         raise ex
-    else:
-        output_file.close()
+    output_file.close()
