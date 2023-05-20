@@ -58,4 +58,3 @@ if TAKE_SCREENSHOT:
     print("Screenshot Saved")
     storage.umount(vfs)
     print("SD Card Unmounted")  # Do not remove SD card until unmounted
-    
