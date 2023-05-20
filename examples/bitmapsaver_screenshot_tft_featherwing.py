@@ -16,6 +16,8 @@ displayio.release_displays()
 DISPLAY_WIDTH = 480
 DISPLAY_HEIGHT = 320
 
+TAKE_SCREENSHOT = False  # Set to True to take a screenshot
+
 # Initialize Protocol Busses and SD Card
 spi = board.SPI()
 cs = digitalio.DigitalInOut(board.D5)
@@ -33,6 +35,10 @@ display = HX8357(display_bus, width=DISPLAY_WIDTH, height=DISPLAY_HEIGHT)
 virtual_root = "/sd"
 storage.mount(vfs, virtual_root)
 
-print("Taking Screenshot... ")
-save_pixels("/sd/screenshot.bmp", display)
-print("Screenshot taken")
+if TAKE_SCREENSHOT:
+    print("Taking Screenshot... ")
+    save_pixels("/sd/screenshot.bmp", display)
+    print("Screenshot Saved")
+    storage.umount(vfs)
+    print("SD Card Unmounted")  # Do not remove SD card until unmounted
+    

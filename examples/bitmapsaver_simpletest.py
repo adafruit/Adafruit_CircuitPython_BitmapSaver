@@ -14,6 +14,8 @@ from adafruit_bitmapsaver import save_pixels
 
 # pylint:disable=invalid-name
 
+TAKE_SCREENSHOT = False  # Set to True to take a screenshot
+
 print("Setting up SD card")
 spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
 cs = digitalio.DigitalInOut(board.SD_CS)
@@ -50,5 +52,10 @@ for x in range(16):
         else:
             bitmap[x, y] = 0
 
-print("Saving bitmap")
-save_pixels("/sd/test.bmp", bitmap, palette)
+if TAKE_SCREENSHOT:
+    print("Taking Screenshot... ")
+    save_pixels("/sd/screenshot.bmp", bitmap, palette)
+    print("Screenshot Saved")
+    storage.umount(vfs)
+    print("SD Card Unmounted")  # Do not remove SD card until unmounted
+    
