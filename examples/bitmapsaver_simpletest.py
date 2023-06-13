@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: 2019 Dave Astels for Adafruit Industries
 # SPDX-License-Identifier: MIT
-
-
 """Example of using save_bitmap"""
+# pylint:disable=invalid-name
 
 import board
 import busio
@@ -12,16 +11,7 @@ import adafruit_sdcard
 import storage
 from adafruit_bitmapsaver import save_pixels
 
-# pylint:disable=invalid-name
-
-TAKE_SCREENSHOT = False  # Set to True to take a screenshot
-
-print("Setting up SD card")
-spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
-cs = digitalio.DigitalInOut(board.SD_CS)
-sdcard = adafruit_sdcard.SDCard(spi, cs)
-vfs = storage.VfsFat(sdcard)
-storage.mount(vfs, "/sd")
+TAKE_SCREENSHOT = False  # Set True to take a screenshot
 
 WHITE = 0xFFFFFF
 BLACK = 0x000000
@@ -53,6 +43,14 @@ for x in range(16):
             bitmap[x, y] = 0
 
 if TAKE_SCREENSHOT:
+    # Initialize SD Card & Mount Virtual File System
+    print("Setting up SD card")
+    spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
+    cs = digitalio.DigitalInOut(board.SD_CS)
+    sdcard = adafruit_sdcard.SDCard(spi, cs)
+    vfs = storage.VfsFat(sdcard)
+    storage.mount(vfs, "/sd")  # /sd is root dir of SD Card
+    
     print("Taking Screenshot... ")
     save_pixels("/sd/screenshot.bmp", bitmap, palette)
     print("Screenshot Saved")
