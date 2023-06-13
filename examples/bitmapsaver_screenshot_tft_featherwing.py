@@ -35,7 +35,7 @@ if TAKE_SCREENSHOT:
     vfs = storage.VfsFat(sdcard)
     virtual_root = "/sd"  # /sd is root dir of SD Card
     storage.mount(vfs, virtual_root)
-    
+
     print("Taking Screenshot... ")
     save_pixels("/sd/screenshot.bmp", display)
     print("Screenshot Saved")

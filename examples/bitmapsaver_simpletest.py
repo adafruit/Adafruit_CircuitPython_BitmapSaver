@@ -50,7 +50,7 @@ if TAKE_SCREENSHOT:
     sdcard = adafruit_sdcard.SDCard(spi, cs)
     vfs = storage.VfsFat(sdcard)
     storage.mount(vfs, "/sd")  # /sd is root dir of SD Card
-    
+
     print("Taking Screenshot... ")
     save_pixels("/sd/screenshot.bmp", bitmap, palette)
     print("Screenshot Saved")
