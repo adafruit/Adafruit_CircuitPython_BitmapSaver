@@ -1,7 +1,8 @@
-# SPDX-FileCopyrightText: 2022 DJDevon3 for Adafruit Industries
+# SPDX-FileCopyrightText: 2023 DJDevon3
 # SPDX-License-Identifier: MIT
-"""Screenshot on a 3.5" TFT Featherwing (integrated SD Card)"""
+""" Screenshot on a 3.5" TFT Featherwing (integrated SD Card) """
 # pylint:disable=invalid-name
+
 import board
 import digitalio
 import displayio
@@ -16,23 +17,27 @@ displayio.release_displays()
 DISPLAY_WIDTH = 480
 DISPLAY_HEIGHT = 320
 
-# Initialize Protocol Busses and SD Card
-spi = board.SPI()
-cs = digitalio.DigitalInOut(board.D5)
-sdcard = adafruit_sdcard.SDCard(spi, cs)
-vfs = storage.VfsFat(sdcard)
-displayio.release_displays()
+TAKE_SCREENSHOT = False  # Set to True to take a screenshot
 
-# Setup Pinouts according to your feather board
+# Initialize SPI Bus
+spi = board.SPI()
+
+# Initialize TFT Featherwing Display
 tft_cs = board.D9
 tft_dc = board.D10
 display_bus = displayio.FourWire(spi, command=tft_dc, chip_select=tft_cs)
 display = HX8357(display_bus, width=DISPLAY_WIDTH, height=DISPLAY_HEIGHT)
 
-# Mount Virtual File System
-virtual_root = "/sd"
-storage.mount(vfs, virtual_root)
+if TAKE_SCREENSHOT:
+    # Initialize SD Card & Mount Virtual File System
+    cs = digitalio.DigitalInOut(board.D5)
+    sdcard = adafruit_sdcard.SDCard(spi, cs)
+    vfs = storage.VfsFat(sdcard)
+    virtual_root = "/sd"  # /sd is root dir of SD Card
+    storage.mount(vfs, virtual_root)
 
-print("Taking Screenshot... ")
-save_pixels("/sd/screenshot.bmp", display)
-print("Screenshot taken")
+    print("Taking Screenshot... ")
+    save_pixels("/sd/screenshot.bmp", display)
+    print("Screenshot Saved")
+    storage.umount(vfs)
+    print("SD Card Unmounted")  # Do not remove SD card until unmounted
