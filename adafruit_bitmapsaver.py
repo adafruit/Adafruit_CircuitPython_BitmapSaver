@@ -81,56 +81,6 @@ def _rgb565_to_bgr_tuple(color: int) -> Tuple[int, int, int]:
     return blue, green, red
 
 
-def rgb565_unpack(packed_rgb: int) -> tuple[int, int, int]:
-    """
-    Convert an int representing a hex rgb565 color into a tuple
-    of it's r, g, and b values.
-    :param packed_rgb: rgb565 color value as an int
-    :return: Tuple with r, g, and b values
-    """
-    r = (packed_rgb >> 11) & 0x1F
-    g = (packed_rgb >> 5) & 0x3F
-    b = packed_rgb & 0x1F
-    return (r, g, b)
-
-
-def rgb565_pack(r: int, g: int, b: int) -> int:
-    """
-    Convert a tuple with r, g, and b values into an rgb565
-    color value represented as an integer
-    :param r: red value
-    :param g: green value
-    :param b: blue value
-    :return int: rgb565 value
-    """
-    return ((r & 0x1F) << 11) | ((g & 0x3F) << 5) | (b & 0x1F)
-
-
-def rgb888_unpack(packed_rgb: int) -> Tuple[int, int, int]:
-    """
-    Convert an int representing an rgb888 color value into a
-    tuple containing it's r, g, and b values.
-    :param packed_rgb: rgb888 integer color value
-    :return: Tuple containing r, g, and b values
-    """
-    r = (packed_rgb >> 16) & 0xFF
-    g = (packed_rgb >> 8) & 0xFF
-    b = packed_rgb & 0xFF
-    return (r, g, b)
-
-
-def rgb888_pack(r, g, b):
-    """
-    Convert a tuple with r, g, and b values into an rgb888
-    color value represented as an integer
-    :param r: red value
-    :param g: green value
-    :param b: blue value
-    :return int: rgb888 value
-    """
-    return ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0xFF)
-
-
 def rgb565_to_rgb888(rgb565):
     """
     Convert from an integer representing rgb565 color into an integer
