@@ -31,7 +31,7 @@ Implementation Notes
 import gc
 import struct
 import board
-from displayio import Bitmap, Palette, Display
+from displayio import Bitmap, Palette, Display, ColorConverter
 
 try:
     from typing import Tuple, Optional, Union
@@ -81,11 +81,88 @@ def _rgb565_to_bgr_tuple(color: int) -> Tuple[int, int, int]:
     return blue, green, red
 
 
+def rgb565_unpack(packed_rgb: int) -> tuple[int, int, int]:
+    """
+    Convert an int representing a hex rgb565 color into a tuple
+    of it's r, g, and b values.
+    :param packed_rgb: rgb565 color value as an int
+    :return: Tuple with r, g, and b values
+    """
+    r = (packed_rgb >> 11) & 0x1F
+    g = (packed_rgb >> 5) & 0x3F
+    b = packed_rgb & 0x1F
+    return (r, g, b)
+
+
+def rgb565_pack(r: int, g: int, b: int) -> int:
+    """
+    Convert a tuple with r, g, and b values into an rgb565
+    color value represented as an integer
+    :param r: red value
+    :param g: green value
+    :param b: blue value
+    :return int: rgb565 value
+    """
+    return ((r & 0x1F) << 11) | ((g & 0x3F) << 5) | (b & 0x1F)
+
+
+def rgb888_unpack(packed_rgb: int) -> Tuple[int, int, int]:
+    """
+    Convert an int representing an rgb888 color value into a
+    tuple containing it's r, g, and b values.
+    :param packed_rgb: rgb888 integer color value
+    :return: Tuple containing r, g, and b values
+    """
+    r = (packed_rgb >> 16) & 0xFF
+    g = (packed_rgb >> 8) & 0xFF
+    b = packed_rgb & 0xFF
+    return (r, g, b)
+
+
+def rgb888_pack(r, g, b):
+    """
+    Convert a tuple with r, g, and b values into an rgb888
+    color value represented as an integer
+    :param r: red value
+    :param g: green value
+    :param b: blue value
+    :return int: rgb888 value
+    """
+    return ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0xFF)
+
+
+def rgb565_to_rgb888(rgb565):
+    """
+    Convert from an integer representing rgb565 color into an integer
+    representing rgb888 color.
+    :param rgb565: Color to convert
+    :return int: rgb888 color value
+    """
+    # Shift the red value to the right by 11 bits.
+    red5 = rgb565 >> 11
+    # Shift the green value to the right by 5 bits and extract the lower 6 bits.
+    green6 = (rgb565 >> 5) & 0b111111
+    # Extract the lower 5 bits for blue.
+    blue5 = rgb565 & 0b11111
+
+    # Convert 5-bit red to 8-bit red.
+    red8 = round(red5 / 31 * 255)
+    # Convert 6-bit green to 8-bit green.
+    green8 = round(green6 / 63 * 255)
+    # Convert 5-bit blue to 8-bit blue.
+    blue8 = round(blue5 / 31 * 255)
+
+    # Combine the RGB888 values into a single integer
+    rgb888_value = (red8 << 16) | (green8 << 8) | blue8
+
+    return rgb888_value
+
+
 # pylint:disable=too-many-locals
 def _write_pixels(
     output_file: BufferedWriter,
     pixel_source: Union[Bitmap, Display],
-    palette: Optional[Palette],
+    palette: Optional[Union[Palette, ColorConverter]],
 ) -> None:
     saving_bitmap = isinstance(pixel_source, Bitmap)
     width, height = _rotated_height_and_width(pixel_source)
@@ -97,7 +174,13 @@ def _write_pixels(
             # pixel_source: Bitmap
             for x in range(width):
                 pixel = pixel_source[x, y - 1]
-                color = palette[pixel]  # handled by save_pixel's guardians
+                if isinstance(palette, Palette):
+                    color = palette[pixel]  # handled by save_pixel's guardians
+                elif isinstance(palette, ColorConverter):
+                    converted = palette.convert(pixel)
+                    converted_888 = rgb565_to_rgb888(converted)
+                    color = converted_888
+
                 for _ in range(3):
                     row_buffer[buffer_index] = color & 0xFF
                     color >>= 8
@@ -124,7 +207,7 @@ def _write_pixels(
 def save_pixels(
     file_or_filename: Union[str, BufferedWriter],
     pixel_source: Union[Display, Bitmap] = None,
-    palette: Optional[Palette] = None,
+    palette: Optional[Union[Palette, ColorConverter]] = None,
 ) -> None:
     """Save pixels to a 24 bit per pixel BMP file.
     If pixel_source if a displayio.Bitmap, save it's pixels through palette.
@@ -140,8 +223,10 @@ def save_pixels(
         pixel_source = board.DISPLAY
 
     if isinstance(pixel_source, Bitmap):
-        if not isinstance(palette, Palette):
-            raise ValueError("Third argument must be a Palette for a Bitmap save")
+        if not isinstance(palette, Palette) and not isinstance(palette, ColorConverter):
+            raise ValueError(
+                "Third argument must be a Palette or ColorConverter for a Bitmap save"
+            )
     elif not isinstance(pixel_source, Display):
         raise ValueError("Second argument must be a Bitmap or Display")
     try:
