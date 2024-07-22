@@ -8,7 +8,7 @@
 ================================================================================
 
 Save a displayio.Bitmap (and associated displayio.Palette) in a BMP file.
-Make a screenshot (the contents of a displayio.Display) and save in a BMP file.
+Make a screenshot (the contents of a busdisplay.BusDisplay) and save in a BMP file.
 
 
 * Author(s): Dave Astels, Matt Land
@@ -30,12 +30,14 @@ Implementation Notes
 
 import gc
 import struct
+
 import board
-from displayio import Bitmap, Palette, Display, ColorConverter
+from busdisplay import BusDisplay
+from displayio import Bitmap, ColorConverter, Palette
 
 try:
-    from typing import Tuple, Optional, Union
     from io import BufferedWriter
+    from typing import Optional, Tuple, Union
 except ImportError:
     pass
 
@@ -67,9 +69,9 @@ def _bytes_per_row(source_width: int) -> int:
     return pixel_bytes + padding_bytes
 
 
-def _rotated_height_and_width(pixel_source: Union[Bitmap, Display]) -> Tuple[int, int]:
+def _rotated_height_and_width(pixel_source: Union[Bitmap, BusDisplay]) -> Tuple[int, int]:
     # flip axis if the display is rotated
-    if isinstance(pixel_source, Display) and (pixel_source.rotation % 180 != 0):
+    if isinstance(pixel_source, BusDisplay) and (pixel_source.rotation % 180 != 0):
         return pixel_source.height, pixel_source.width
     return pixel_source.width, pixel_source.height
 
@@ -111,7 +113,7 @@ def rgb565_to_rgb888(rgb565):
 # pylint:disable=too-many-locals
 def _write_pixels(
     output_file: BufferedWriter,
-    pixel_source: Union[Bitmap, Display],
+    pixel_source: Union[Bitmap, BusDisplay],
     palette: Optional[Union[Palette, ColorConverter]],
 ) -> None:
     saving_bitmap = isinstance(pixel_source, Bitmap)
@@ -156,12 +158,12 @@ def _write_pixels(
 
 def save_pixels(
     file_or_filename: Union[str, BufferedWriter],
-    pixel_source: Union[Display, Bitmap] = None,
+    pixel_source: Union[BusDisplay, Bitmap] = None,
     palette: Optional[Union[Palette, ColorConverter]] = None,
 ) -> None:
     """Save pixels to a 24 bit per pixel BMP file.
     If pixel_source if a displayio.Bitmap, save it's pixels through palette.
-    If it's a displayio.Display, a palette isn't required.
+    If it's a busdisplay.BusDisplay, a palette isn't required.
 
     :param file_or_filename: either the file to save to, or it's absolute name
     :param pixel_source: the Bitmap or Display to save
@@ -174,10 +176,8 @@ def save_pixels(
 
     if isinstance(pixel_source, Bitmap):
         if not isinstance(palette, Palette) and not isinstance(palette, ColorConverter):
-            raise ValueError(
-                "Third argument must be a Palette or ColorConverter for a Bitmap save"
-            )
-    elif not isinstance(pixel_source, Display):
+            raise ValueError("Third argument must be a Palette or ColorConverter for a Bitmap save")
+    elif not isinstance(pixel_source, BusDisplay):
         raise ValueError("Second argument must be a Bitmap or Display")
     try:
         if isinstance(file_or_filename, str):

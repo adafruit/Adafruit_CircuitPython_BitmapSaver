@@ -3,12 +3,13 @@
 """Example of using save_bitmap"""
 # pylint:disable=invalid-name
 
+import adafruit_sdcard
 import board
 import busio
 import digitalio
-from displayio import Bitmap, Palette
-import adafruit_sdcard
 import storage
+from displayio import Bitmap, Palette
+
 from adafruit_bitmapsaver import save_pixels
 
 TAKE_SCREENSHOT = False  # Set True to take a screenshot
@@ -33,7 +34,7 @@ for i, c in enumerate(colors):
 
 for x in range(16):
     for y in range(16):
-        if x == 0 or y == 0 or x == 15 or y == 15:
+        if x in (0, 15) or y in (0, 15):
             bitmap[x, y] = 1
         elif x == y:
             bitmap[x, y] = 4

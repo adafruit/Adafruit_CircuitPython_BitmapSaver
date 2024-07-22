@@ -1,14 +1,16 @@
 # SPDX-FileCopyrightText: 2023 DJDevon3
 # SPDX-License-Identifier: MIT
-""" Screenshot on a 3.5" TFT Featherwing (integrated SD Card) """
+"""Screenshot on a 3.5" TFT Featherwing (integrated SD Card)"""
 # pylint:disable=invalid-name
 
+import adafruit_sdcard
 import board
 import digitalio
 import displayio
-import adafruit_sdcard
+import fourwire
 import storage
 from adafruit_hx8357 import HX8357
+
 from adafruit_bitmapsaver import save_pixels
 
 displayio.release_displays()
@@ -25,7 +27,7 @@ spi = board.SPI()
 # Initialize TFT Featherwing Display
 tft_cs = board.D9
 tft_dc = board.D10
-display_bus = displayio.FourWire(spi, command=tft_dc, chip_select=tft_cs)
+display_bus = fourwire.FourWire(spi, command=tft_dc, chip_select=tft_cs)
 display = HX8357(display_bus, width=DISPLAY_WIDTH, height=DISPLAY_HEIGHT)
 
 if TAKE_SCREENSHOT:
