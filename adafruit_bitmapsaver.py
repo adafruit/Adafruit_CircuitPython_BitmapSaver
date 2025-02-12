@@ -168,7 +168,7 @@ def save_pixels(
     :param palette: the Palette to use for looking up colors in the bitmap
     """
     if not pixel_source:
-        if not hasattr(board, "DISPLAY"):
+        if not getattr(board, "DISPLAY", None):
             raise ValueError("Second argument must be a Bitmap or Display")
         pixel_source = board.DISPLAY
 
