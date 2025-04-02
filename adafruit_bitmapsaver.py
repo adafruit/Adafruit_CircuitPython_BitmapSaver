@@ -32,11 +32,13 @@ import gc
 import struct
 import board
 from displayio import Bitmap, Palette, ColorConverter
-from busdisplay import BusDisplay
+
 
 try:
     from typing import Tuple, Optional, Union
     from io import BufferedWriter
+    from busdisplay import BusDisplay
+    from framebufferio import FramebufferDisplay
 except ImportError:
     pass
 
@@ -69,10 +71,10 @@ def _bytes_per_row(source_width: int) -> int:
 
 
 def _rotated_height_and_width(
-    pixel_source: Union[Bitmap, BusDisplay]
+    pixel_source: Union[Bitmap, BusDisplay, FramebufferDisplay]
 ) -> Tuple[int, int]:
     # flip axis if the display is rotated
-    if isinstance(pixel_source, BusDisplay) and (pixel_source.rotation % 180 != 0):
+    if hasattr(pixel_source, "rotation") and (pixel_source.rotation % 180 != 0):
         return pixel_source.height, pixel_source.width
     return pixel_source.width, pixel_source.height
 
@@ -114,7 +116,7 @@ def rgb565_to_rgb888(rgb565):
 # pylint:disable=too-many-locals
 def _write_pixels(
     output_file: BufferedWriter,
-    pixel_source: Union[Bitmap, BusDisplay],
+    pixel_source: Union[Bitmap, BusDisplay, FramebufferDisplay],
     palette: Optional[Union[Palette, ColorConverter]],
 ) -> None:
     saving_bitmap = isinstance(pixel_source, Bitmap)
@@ -139,7 +141,7 @@ def _write_pixels(
                     color >>= 8
                     buffer_index += 1
         else:
-            # pixel_source: Display
+            # pixel_source: display
             result_buffer = bytearray(2048)
             data = pixel_source.fill_row(y - 1, result_buffer)
             for i in range(width):
@@ -159,15 +161,17 @@ def _write_pixels(
 
 def save_pixels(
     file_or_filename: Union[str, BufferedWriter],
-    pixel_source: Union[BusDisplay, Bitmap] = None,
+    pixel_source: Union[BusDisplay, FramebufferDisplay, Bitmap] = None,
     palette: Optional[Union[Palette, ColorConverter]] = None,
 ) -> None:
     """Save pixels to a 24 bit per pixel BMP file.
     If pixel_source if a displayio.Bitmap, save it's pixels through palette.
-    If it's a displayio.Display, a palette isn't required.
+    If it's a displayio display, a palette isn't required. To be supported,
+    a display must implement `busdisplay.BusDisplay.fill_row`. Known supported
+    display types are `busdisplay.BusDisplay` and `framebufferio.FramebufferDisplay`.
 
     :param file_or_filename: either the file to save to, or it's absolute name
-    :param pixel_source: the Bitmap or Display to save
+    :param pixel_source: the Bitmap or display to save
     :param palette: the Palette to use for looking up colors in the bitmap
     """
     if not pixel_source:
@@ -180,8 +184,8 @@ def save_pixels(
             raise ValueError(
                 "Third argument must be a Palette or ColorConverter for a Bitmap save"
             )
-    elif not isinstance(pixel_source, BusDisplay):
-        raise ValueError("Second argument must be a Bitmap or Display")
+    elif not hasattr(pixel_source, "fill_row"):
+        raise ValueError("Second argument must be a Bitmap or supported display type")
     try:
         if isinstance(file_or_filename, str):
             output_file = open(  # pylint: disable=consider-using-with
