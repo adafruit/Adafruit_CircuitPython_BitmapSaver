@@ -8,7 +8,7 @@
 ================================================================================
 
 Save a displayio.Bitmap (and associated displayio.Palette) in a BMP file.
-Make a screenshot (the contents of a displayio.Display) and save in a BMP file.
+Make a screenshot (the contents of a busdisplay.BusDisplay) and save in a BMP file.
 
 
 * Author(s): Dave Astels, Matt Land
@@ -26,12 +26,17 @@ Implementation Notes
 
 """
 
-# imports
+# pylint: disable=ungrouped-imports
 
 import gc
 import struct
 import board
-from displayio import Bitmap, Palette, Display, ColorConverter
+from displayio import Bitmap, Palette, ColorConverter
+
+try:
+    from busdisplay import BusDisplay
+except ImportError:
+    from displayio import Display as BusDisplay
 
 try:
     from typing import Tuple, Optional, Union
@@ -67,9 +72,11 @@ def _bytes_per_row(source_width: int) -> int:
     return pixel_bytes + padding_bytes
 
 
-def _rotated_height_and_width(pixel_source: Union[Bitmap, Display]) -> Tuple[int, int]:
+def _rotated_height_and_width(
+    pixel_source: Union[Bitmap, BusDisplay]
+) -> Tuple[int, int]:
     # flip axis if the display is rotated
-    if isinstance(pixel_source, Display) and (pixel_source.rotation % 180 != 0):
+    if isinstance(pixel_source, BusDisplay) and (pixel_source.rotation % 180 != 0):
         return pixel_source.height, pixel_source.width
     return pixel_source.width, pixel_source.height
 
@@ -111,7 +118,7 @@ def rgb565_to_rgb888(rgb565):
 # pylint:disable=too-many-locals
 def _write_pixels(
     output_file: BufferedWriter,
-    pixel_source: Union[Bitmap, Display],
+    pixel_source: Union[Bitmap, BusDisplay],
     palette: Optional[Union[Palette, ColorConverter]],
 ) -> None:
     saving_bitmap = isinstance(pixel_source, Bitmap)
@@ -156,7 +163,7 @@ def _write_pixels(
 
 def save_pixels(
     file_or_filename: Union[str, BufferedWriter],
-    pixel_source: Union[Display, Bitmap] = None,
+    pixel_source: Union[BusDisplay, Bitmap] = None,
     palette: Optional[Union[Palette, ColorConverter]] = None,
 ) -> None:
     """Save pixels to a 24 bit per pixel BMP file.
@@ -177,7 +184,7 @@ def save_pixels(
             raise ValueError(
                 "Third argument must be a Palette or ColorConverter for a Bitmap save"
             )
-    elif not isinstance(pixel_source, Display):
+    elif not isinstance(pixel_source, BusDisplay):
         raise ValueError("Second argument must be a Bitmap or Display")
     try:
         if isinstance(file_or_filename, str):
