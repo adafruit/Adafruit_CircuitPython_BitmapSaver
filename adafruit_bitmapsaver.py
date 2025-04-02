@@ -26,17 +26,13 @@ Implementation Notes
 
 """
 
-# pylint: disable=ungrouped-imports
+# imports
 
 import gc
 import struct
 import board
 from displayio import Bitmap, Palette, ColorConverter
-
-try:
-    from busdisplay import BusDisplay
-except ImportError:
-    from displayio import Display as BusDisplay
+from busdisplay import BusDisplay
 
 try:
     from typing import Tuple, Optional, Union
