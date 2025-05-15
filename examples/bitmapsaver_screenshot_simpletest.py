@@ -4,11 +4,12 @@
 """Example of taking a screenshot."""
 
 # pylint:disable=invalid-name
-import board
-import digitalio
-import busio
 import adafruit_sdcard
+import board
+import busio
+import digitalio
 import storage
+
 from adafruit_bitmapsaver import save_pixels
 
 TAKE_SCREENSHOT = False  # Set to True to take a screenshot

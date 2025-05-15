@@ -1,14 +1,15 @@
 # SPDX-FileCopyrightText: 2023 DJDevon3
 # SPDX-License-Identifier: MIT
-""" Screenshot on a 3.5" TFT Featherwing (integrated SD Card) """
+"""Screenshot on a 3.5" TFT Featherwing (integrated SD Card)"""
 # pylint:disable=invalid-name
 
+import adafruit_sdcard
 import board
 import digitalio
 import displayio
-import adafruit_sdcard
 import storage
 from adafruit_hx8357 import HX8357
+
 from adafruit_bitmapsaver import save_pixels
 
 displayio.release_displays()

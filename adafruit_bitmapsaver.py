@@ -30,13 +30,14 @@ Implementation Notes
 
 import gc
 import struct
-import board
-from displayio import Bitmap, Palette, ColorConverter
 
+import board
+from displayio import Bitmap, ColorConverter, Palette
 
 try:
-    from typing import Tuple, Optional, Union
     from io import BufferedWriter
+    from typing import Optional, Tuple, Union
+
     from busdisplay import BusDisplay
     from framebufferio import FramebufferDisplay
 except ImportError:
@@ -71,7 +72,7 @@ def _bytes_per_row(source_width: int) -> int:
 
 
 def _rotated_height_and_width(
-    pixel_source: Union[Bitmap, BusDisplay, FramebufferDisplay]
+    pixel_source: Union[Bitmap, BusDisplay, FramebufferDisplay],
 ) -> Tuple[int, int]:
     # flip axis if the display is rotated
     if hasattr(pixel_source, "rotation") and (pixel_source.rotation % 180 != 0):
@@ -113,7 +114,6 @@ def rgb565_to_rgb888(rgb565):
     return rgb888_value
 
 
-# pylint:disable=too-many-locals
 def _write_pixels(
     output_file: BufferedWriter,
     pixel_source: Union[Bitmap, BusDisplay, FramebufferDisplay],
@@ -156,9 +156,6 @@ def _write_pixels(
         gc.collect()
 
 
-# pylint:enable=too-many-locals
-
-
 def save_pixels(
     file_or_filename: Union[str, BufferedWriter],
     pixel_source: Union[BusDisplay, FramebufferDisplay, Bitmap] = None,
@@ -181,16 +178,12 @@ def save_pixels(
 
     if isinstance(pixel_source, Bitmap):
         if not isinstance(palette, Palette) and not isinstance(palette, ColorConverter):
-            raise ValueError(
-                "Third argument must be a Palette or ColorConverter for a Bitmap save"
-            )
+            raise ValueError("Third argument must be a Palette or ColorConverter for a Bitmap save")
     elif not hasattr(pixel_source, "fill_row"):
         raise ValueError("Second argument must be a Bitmap or supported display type")
     try:
         if isinstance(file_or_filename, str):
-            output_file = open(  # pylint: disable=consider-using-with
-                file_or_filename, "wb"
-            )
+            output_file = open(file_or_filename, "wb")
         else:
             output_file = file_or_filename
 
