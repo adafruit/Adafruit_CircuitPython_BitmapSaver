@@ -7,6 +7,7 @@ import adafruit_sdcard
 import board
 import digitalio
 import displayio
+import fourwire
 import storage
 from adafruit_hx8357 import HX8357
 
@@ -26,7 +27,7 @@ spi = board.SPI()
 # Initialize TFT Featherwing Display
 tft_cs = board.D9
 tft_dc = board.D10
-display_bus = displayio.FourWire(spi, command=tft_dc, chip_select=tft_cs)
+display_bus = fourwire.FourWire(spi, command=tft_dc, chip_select=tft_cs)
 display = HX8357(display_bus, width=DISPLAY_WIDTH, height=DISPLAY_HEIGHT)
 
 if TAKE_SCREENSHOT:
