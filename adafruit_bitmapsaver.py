@@ -145,7 +145,7 @@ def _write_pixels(
             result_buffer = bytearray(2048)
             data = pixel_source.fill_row(y - 1, result_buffer)
             for i in range(width):
-                pixel565 = (data[i * 2] << 8) + data[i * 2 + 1]
+                pixel565 = (data[i * 2 + 1] << 8) + data[i * 2]
                 for b in _rgb565_to_bgr_tuple(pixel565):
                     row_buffer[buffer_index] = b & 0xFF
                     buffer_index += 1
